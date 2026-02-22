@@ -1,0 +1,35 @@
+name: Deploy to HuggingFace Spaces
+
+on:
+  push:
+    branches:
+      - main  # Auto-deploy on every push to main
+  workflow_dispatch: # Allow manual trigger from Actions tab
+
+jobs:
+  deploy:
+    name: Push to HuggingFace Space
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history required for git push
+
+      - name: Configure Git identity
+        run: |
+          git config user.email "ci@github-actions.com"
+          git config user.name "GitHub Actions"
+
+      - name: Push to HuggingFace Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+        run: |
+          git remote add space \
+            https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME
+
+          git push space main --force
+          echo "✅ Deployed to https://huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME"

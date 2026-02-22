@@ -18,6 +18,11 @@ FROM python:3.11-slim AS runtime
 
 WORKDIR /app
 
+# Runtime system deps (libpq for psycopg2)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Only copy the installed packages from builder (keeps image small)
 COPY --from=builder /install /usr/local
 
@@ -25,9 +30,11 @@ COPY --from=builder /install /usr/local
 COPY . .
 
 # Non-root user for security
-RUN useradd -m appuser && chown -R appuser /app
+# NOTE: Hugging Face Spaces runs as UID 1000 by default
+RUN useradd -m -u 1000 appuser && chown -R appuser /app
 USER appuser
 
-EXPOSE 8000
+# HuggingFace Spaces requires port 7860
+EXPOSE 7860
 
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "7860"]
