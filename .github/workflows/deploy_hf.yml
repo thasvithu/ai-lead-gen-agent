@@ -15,21 +15,37 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history required for git push
+          fetch-depth: 1
 
       - name: Configure Git identity
         run: |
-          git config user.email "ci@github-actions.com"
-          git config user.name "GitHub Actions"
+          git config --global user.email "ci@github-actions.com"
+          git config --global user.name "GitHub Actions"
 
-      - name: Push to HuggingFace Spaces
+      - name: Push HF-only snapshot to HuggingFace Spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
           HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
         run: |
+          HF_DIR="/tmp/hf-deploy"
+          rm -rf "$HF_DIR"
+          mkdir -p "$HF_DIR"
+
+          # Copy source tree without .git metadata and without preview binary assets.
+          rsync -a --delete \
+            --exclude=".git" \
+            --exclude="docs/assets/*.png" \
+            ./ "$HF_DIR"/
+
+          # Use dedicated Space README/frontmatter for Hugging Face deployment.
+          cp "$HF_DIR/README_HF.md" "$HF_DIR/README.md"
+
+          cd "$HF_DIR"
+          git init
+          git add -A
+          git commit -m "ci: deploy snapshot for HuggingFace Space"
           git remote add space \
             https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME
-
-          git push space main --force
+          git push space HEAD:main --force
           echo "✅ Deployed to https://huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME"
