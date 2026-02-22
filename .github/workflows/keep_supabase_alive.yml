@@ -12,36 +12,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install minimal dependencies
-        run: pip install psycopg2-binary sqlalchemy
-
-      - name: Ping Supabase database
+      - name: Ping Supabase REST health endpoint
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          python - <<'EOF'
-          import os, sys
-          from sqlalchemy import create_engine, text
+          echo "Pinging Supabase REST API..."
 
-          db_url = os.environ.get("DATABASE_URL")
-          if not db_url:
-              print("❌ DATABASE_URL secret not set.")
-              sys.exit(1)
+          # Supabase REST endpoint returns 200 (or 401 without auth) if DB is alive
+          # Either response means the project is NOT paused
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/")
 
-          try:
-              engine = create_engine(db_url)
-              with engine.connect() as conn:
-                  result = conn.execute(text("SELECT 1"))
-                  print(f"✅ Supabase ping successful: {result.fetchone()}")
-          except Exception as e:
-              print(f"❌ Ping failed: {e}")
-              sys.exit(1)
-          EOF
+          echo "HTTP status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 401 ]; then
+            echo "✅ Supabase is alive (HTTP $HTTP_STATUS)"
+          else
+            echo "❌ Unexpected status: $HTTP_STATUS — Supabase may be paused"
+            exit 1
+          fi

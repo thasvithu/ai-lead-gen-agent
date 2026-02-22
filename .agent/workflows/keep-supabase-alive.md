@@ -8,12 +8,15 @@ The GitHub Actions workflow at `.github/workflows/keep_supabase_alive.yml` pings
 
 ## One-time Setup
 
-### Step 1 — Add the required GitHub Secret
+### Step 1 — Add the required GitHub Secrets
 Go to your GitHub repo → **Settings → Secrets and variables → Actions → New repository secret**:
 
 | Secret Name | Value |
 |---|---|
-| `DATABASE_URL` | Your Supabase PostgreSQL connection string (from Supabase project Settings → Database → Connection string → URI) |
+| `SUPABASE_URL` | Your Supabase project URL — e.g. `https://vnfmpfpnvfugytvqizdl.supabase.co` |
+| `SUPABASE_ANON_KEY` | Your Supabase `anon` public key (from Supabase → Settings → API) |
+
+> **Why not DATABASE_URL?** Direct psycopg2 connections from GitHub Actions fail with an IPv6 unreachable error. The HTTP REST ping works reliably over IPv4.
 
 ### Step 2 — Verify the workflow is enabled
 Go to **Actions** tab → "Keep Supabase Alive" → Ensure it's not disabled.
