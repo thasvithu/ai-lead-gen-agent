@@ -49,13 +49,14 @@ app.add_middleware(
 )
 
 
-# ── Routers (imported here; modules added in later phases) ────────────────────
-# from api.endpoints.ingestion_routes import router as ingestion_router
-# from api.endpoints.lead_routes import router as lead_router
-# from api.endpoints.outreach_routes import router as outreach_router
-# app.include_router(ingestion_router, prefix="/ingestion", tags=["Ingestion"])
-# app.include_router(lead_router, prefix="/leads", tags=["Leads"])
-# app.include_router(outreach_router, prefix="/outreach", tags=["Outreach"])
+# ── Routers ───────────────────────────────────────────────────────────────────
+from api.endpoints.ingestion_routes import router as ingestion_router
+from api.endpoints.lead_routes import router as lead_router
+from api.endpoints.outreach_routes import router as outreach_router
+
+app.include_router(ingestion_router, prefix="/ingestion", tags=["Ingestion"])
+app.include_router(lead_router, prefix="/leads", tags=["Leads"])
+app.include_router(outreach_router, prefix="/outreach", tags=["Outreach"])
 
 
 # ── Health check ─────────────────────────────────────────────────────────────
