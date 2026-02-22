@@ -25,6 +25,12 @@ pinned: false
 
 > You describe your product → the AI finds companies that need it → drafts personalized emails → sends them.
 
+<br/>
+
+## API Docs Preview
+
+![AI Lead Generation Agent API Docs](docs/assets/api-docs-preview.png)
+
 </div>
 
 ---
