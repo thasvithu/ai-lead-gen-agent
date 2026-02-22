@@ -1,0 +1,40 @@
+name: Keep Hugging Face Space Alive
+
+on:
+  schedule:
+    # Run twice per week (Monday and Thursday at 09:00 UTC)
+    - cron: "0 9 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  ping-space:
+    name: Ping Hugging Face Space health endpoint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Space /health endpointhttps://thasvithu-ai-lead-gen-agent.hf.space/docs
+        env:
+          # Prefer a repo secret for flexibility across forks/environments.
+          # Example: https://thasvithu-ai-lead-gen-agent.hf.space
+          HF_SPACE_BASE_URL: ${{ secrets.HF_SPACE_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          BASE_URL="${HF_SPACE_BASE_URL:-https://thasvithu-ai-lead-gen-agent.hf.space}"
+          HEALTH_URL="${BASE_URL%/}/health"
+
+          echo "Pinging Hugging Face Space: $HEALTH_URL"
+
+          HTTP_STATUS=$(curl --retry 3 --retry-delay 5 --retry-all-errors \
+            -sS -o /tmp/hf_health.json -w "%{http_code}" "$HEALTH_URL")
+
+          echo "HTTP status: $HTTP_STATUS"
+          echo "Response:"
+          cat /tmp/hf_health.json
+
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ Hugging Face Space is awake (HTTP 200)."
+          else
+            echo "❌ Unexpected status: $HTTP_STATUS"
+            exit 1
+          fi
