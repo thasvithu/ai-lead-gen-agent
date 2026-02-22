@@ -1,4 +1,13 @@
-## README.md — AI Lead Generation Agent
+---
+title: AI Lead Gen Agent
+emoji: 🤖
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
+
 
 > An AI-powered system that automatically identifies, qualifies, and reaches out to potential business leads from remote job postings.
 
