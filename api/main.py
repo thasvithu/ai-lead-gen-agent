@@ -20,10 +20,14 @@ from app.db.models import Base
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown logic."""
-    # Verify DB is reachable on startup
-    with engine.connect() as conn:
-        conn.execute(__import__("sqlalchemy").text("SELECT 1"))
-    print("✅ Database connection verified.")
+    try:
+        with engine.connect() as conn:
+            conn.execute(__import__("sqlalchemy").text("SELECT 1"))
+        print("✅ Database connection verified.")
+    except Exception as exc:
+        # Non-fatal: warn but don't crash — individual routes will handle DB errors
+        print(f"⚠️  Database connection warning on startup: {exc}")
+        print("   The API will start anyway. Check your DATABASE_URL secret.")
     yield
     print("🛑 Application shutting down.")
 
