@@ -28,7 +28,6 @@ engine = create_engine(
     pool_size=5,
     max_overflow=10,
     echo=False,                  # set True to log all SQL (useful for debugging)
-    connect_args={"prepare_threshold": None},  # required for Supabase PgBouncer pooler
 )
 
 SessionLocal = sessionmaker(
